@@ -170,10 +170,10 @@ function teamsCard(res){
       text: `No exposure this window — scanned ${res.scanned} entries against ${res.invCount} products.` });
   }
 
-  return { type: 'message', attachments: [{
-    contentType: 'application/vnd.microsoft.card.adaptive',
-    content: { $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', type: 'AdaptiveCard', version: '1.4', body }
-  }]};
+  // The Teams "Post card in a chat or channel" action wants the bare Adaptive Card
+  // (this object), NOT a { type:'message', attachments:[...] } envelope. Mapping this
+  // straight into the action's "Adaptive Card = Body" field renders correctly.
+  return { $schema: 'http://adaptivecards.io/schemas/adaptive-card.json', type: 'AdaptiveCard', version: '1.4', body };
 }
 
 function writeStepSummary(res){
