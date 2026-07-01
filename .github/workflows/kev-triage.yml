@@ -1,0 +1,36 @@
+name: KEV Triage
+
+# Runs the CISA KEV vs. inventory cross-check and posts to Teams.
+on:
+  schedule:
+    # Mondays at 14:00 UTC (~09:00 US Eastern). Cron on GitHub is ALWAYS UTC.
+    # Change the time/day here: https://crontab.guru/
+    - cron: '0 14 * * 1'
+  workflow_dispatch:            # adds a "Run workflow" button in the Actions tab
+    inputs:
+      recency_days:
+        description: 'Flag KEV entries added within N days (0 = whole catalog)'
+        default: '7'
+      post_when:
+        description: 'always = post even when clean | matches = only post on findings'
+        default: 'always'
+
+permissions:
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cross-check KEV against inventory
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          RECENCY_DAYS: ${{ github.event.inputs.recency_days || '7' }}
+          POST_WHEN:    ${{ github.event.inputs.post_when || 'always' }}
+        run: node scripts/kev-check.js
