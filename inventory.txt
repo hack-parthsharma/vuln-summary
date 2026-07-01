@@ -1,0 +1,177 @@
+# KEV Triage inventory — "Display name :: keyword, keyword"
+# Keywords are what we match against KEV vendor/product/name. Edit freely.
+# Lines starting with # are ignored.
+
+# --- Network / edge ---
+Cisco Nexus :: cisco nexus, nexus dashboard, nx-os
+Cisco UCS :: cisco ucs, unified computing
+Cisco Fabric Extender :: fabric extender, cisco fex
+SonicWall :: sonicwall
+Dell SonicWall :: sonicwall
+Fortigate/FortiOS :: fortigate, fortios, fortinet, fortiproxy
+Barracuda :: barracuda
+Ubiquiti/UniFi :: ubiquiti, unifi
+Cato Networks :: cato networks
+Hikvision :: hikvision
+
+# --- OS ---
+Windows Server 2012 R2 :: windows server 2012
+Windows 10 :: windows 10
+Ubuntu :: ubuntu
+MATE Desktop :: mate desktop
+
+# --- Browsers ---
+Google Chrome :: chrome, chromium
+Mozilla Firefox :: firefox, mozilla
+Microsoft Edge :: microsoft edge
+
+# --- Databases / data ---
+PostgreSQL :: postgresql, postgres
+MySQL :: mysql
+MSSQL :: sql server, mssql
+MongoDB :: mongodb
+Redis :: redis
+Elasticsearch :: elasticsearch
+OpenSearch :: opensearch
+PgBouncer :: pgbouncer
+pgAdmin :: pgadmin
+pgBadger :: pgbadger
+RabbitMQ :: rabbitmq
+Erlang/OTP :: erlang
+
+# --- Web / app servers ---
+Apache HTTP Server :: apache http server, apache httpd, httpd
+Apache Tomcat :: tomcat
+IIS :: internet information services, iis
+Nginx :: nginx
+Node.js :: node.js, nodejs
+Cerberus FTP Server :: cerberus ftp, cerberus
+hMailServer :: hmailserver
+ONLYOFFICE :: onlyoffice
+OpenSSL :: openssl
+
+# --- Runtimes / dev ---
+Python :: python
+OpenJDK :: openjdk
+Oracle Java :: oracle java, java se, jdk, jre
+Microsoft .NET :: .net framework, .net core, asp.net
+PowerShell :: powershell
+Visual Studio :: visual studio
+Visual Studio Code :: visual studio code, vs code
+Notepad++ :: notepad++
+SonarQube :: sonarqube
+Git :: git
+PyCharm :: pycharm
+Burp Suite :: burp suite
+Postman :: postman
+Ansible :: ansible
+Certbot :: certbot
+TFS / Azure DevOps :: azure devops, team foundation server, tfs
+
+# --- Virtualization / backup ---
+VMware ESXi :: esxi
+VMware vCenter :: vcenter
+VMware Tools :: vmware tools
+Veeam :: veeam
+RVTools :: rvtools
+Bvckup :: bvckup
+SQLBackupAndFTP :: sqlbackupandftp
+
+# --- Monitoring / logging ---
+Grafana :: grafana
+Kibana :: kibana
+Prometheus :: prometheus
+Graylog :: graylog
+Graylog Sidecar :: graylog sidecar
+SolarWinds :: solarwinds
+PRTG Network Monitor :: prtg
+Site24x7 :: site24x7
+Fluentd :: fluentd
+Filebeat :: filebeat
+Logstash :: logstash
+Monit :: monit
+Mmonit :: mmonit
+sysstat :: sysstat
+ipSentry :: ipsentry
+
+# --- Security tooling ---
+ESET :: eset
+Cortex XDR :: cortex xdr
+Imperva :: imperva
+Tenable Nessus :: nessus, tenable
+KnowBe4 :: knowbe4
+Securden :: securden
+SecurEnvoy :: securenvoy
+VeraCrypt :: veracrypt
+KeePass/KeeWeb :: keepass, keeweb
+Windows Defender :: windows defender, microsoft defender
+Npcap :: npcap
+Jamf Protect :: jamf
+DigiCert :: digicert
+Microsoft Azure AD Connect :: azure ad connect, entra connect
+
+# --- Remote access / transfer ---
+PuTTY :: putty
+WinSCP :: winscp
+XRDP :: xrdp
+SplashTop :: splashtop
+JumpCloud :: jumpcloud
+OpenSSH :: openssh
+FileZilla :: filezilla
+Rebex :: rebex
+
+# --- Productivity / docs ---
+Microsoft Office :: microsoft office
+Adobe Acrobat :: acrobat
+Adobe Photoshop :: photoshop
+Adobe Creative Cloud :: creative cloud
+LibreOffice :: libreoffice
+Zoom :: zoom
+Slack :: slack
+IBM Notes :: ibm notes, lotus notes, hcl notes
+Nitro PDF :: nitro pdf
+CutePDF :: cutepdf
+TIFF Image Printer :: tiff image printer
+Informatik PDF :: informatik
+n2pdf :: n2pdf
+eDrawings :: edrawings
+Gliffy :: gliffy
+SAP Crystal Reports :: crystal reports, sap crystal
+Laserfiche :: laserfiche
+
+# --- Web / CMS / support ---
+WordPress :: wordpress
+Yoast SEO :: yoast
+Advanced Custom Fields :: advanced custom fields
+Zendesk :: zendesk
+SupportPal :: supportpal
+FormTools :: form tools, formtools
+
+# --- Utilities ---
+7-Zip :: 7-zip, 7zip
+WinRAR :: winrar
+WinZip :: winzip
+ShareX :: sharex
+IrfanView :: irfanview
+Process Hacker :: process hacker
+TreeSize :: treesize
+WinMerge :: winmerge
+GParted :: gparted
+PDQ Deploy/Inventory :: pdq deploy, pdq inventory
+Landscape Server :: landscape
+ManageEngine :: manageengine
+NVIDIA CUDA :: nvidia cuda, cuda
+Chrony :: chrony
+NFS :: nfs
+CIFS/SMB Utils :: cifs, smb
+LVM2 :: lvm2, lvm
+Samba :: samba
+
+# --- eDiscovery / forensics ---
+AccessData FTK :: accessdata, forensic toolkit
+Concordance :: concordance
+dtSearch :: dtsearch
+Passware Kit :: passware
+Fio :: fio
+ncdu :: ncdu
+iotop :: iotop
