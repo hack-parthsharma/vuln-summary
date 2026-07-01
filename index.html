@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KEV Triage — manual check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#161923; --panel:#1e2230; --panel-2:#232838; --line:#2c3040;
+    --ink:#e6e8ef; --muted:#8b90a3; --faint:#5b6072;
+    --amber:#e0a458; --amber-dim:#3a3020; --red:#e5484d; --red-dim:#3a2124;
+    --green:#3fb27f; --blue:#6ea8d8;
+    --display:"Space Grotesk",system-ui,sans-serif;
+    --body:"Inter",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg); color:var(--ink); font-family:var(--body); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:880px; margin:0 auto; padding:0 22px 80px}
+  a{color:var(--blue); text-decoration:none} a:hover{text-decoration:underline}
+
+  header{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; padding:28px 0 18px; border-bottom:1px solid var(--line); margin-bottom:22px;}
+  .brand h1{font-family:var(--display); font-weight:700; font-size:23px; letter-spacing:-.02em; margin:0}
+  .brand .tag{font-family:var(--mono); font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:.14em; display:block; margin-top:6px}
+  .status{font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right; line-height:1.7}
+  .status b{color:var(--ink); font-weight:600}
+  .dot{display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--faint); margin-right:6px; vertical-align:middle}
+  .dot.on{background:var(--green)} .dot.busy{background:var(--amber)} .dot.bad{background:var(--red)}
+
+  .controls{display:flex; align-items:center; gap:18px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-bottom:22px}
+  .controls .f{display:flex; flex-direction:column; gap:4px}
+  .controls label{font-size:11px; color:var(--muted)}
+  select{background:var(--bg); border:1px solid var(--line); color:var(--ink); border-radius:8px; padding:8px 10px; font-family:var(--body); font-size:13px}
+  select:focus{outline:2px solid var(--amber); outline-offset:-1px}
+  .chk{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--ink); cursor:pointer; user-select:none; margin-top:16px}
+  .chk input{width:15px; height:15px; accent-color:var(--amber)}
+  .spacer{flex:1}
+
+  .btn{font-family:var(--body); font-weight:600; font-size:13px; cursor:pointer; border-radius:8px; padding:9px 16px; border:1px solid var(--line); background:var(--panel-2); color:var(--ink); transition:background .12s;}
+  .btn:hover{background:#2a3042}
+  .btn:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+  .btn.primary{background:var(--amber); border-color:var(--amber); color:#20170a}
+  .btn.primary:hover{background:#eab466}
+  .btn.sm{padding:6px 12px; font-size:12px}
+  .btn:disabled{opacity:.5; cursor:not-allowed}
+
+  .strip{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px}
+  @media (max-width:560px){ .strip{grid-template-columns:repeat(2,1fr)} }
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:15px 16px}
+  .stat .n{font-family:var(--mono); font-size:30px; font-weight:600; line-height:1; letter-spacing:-.02em}
+  .stat .l{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; margin-top:8px}
+  .stat.hit{border-color:#4a3a2a} .stat.hit .n{color:var(--amber)}
+  .stat.crit{border-color:#4a2a2d} .stat.crit .n{color:var(--red)}
+
+  .res-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px}
+  .res-head h2{font-family:var(--display); font-weight:600; font-size:18px; margin:0; letter-spacing:-.01em}
+  .res-head .note{font-family:var(--mono); font-size:12px; color:var(--muted)}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--faint); border-radius:10px; padding:14px 16px; margin-bottom:11px}
+  .card.overdue,.card.ransom{border-left-color:var(--red)} .card.affected{border-left-color:var(--amber)}
+  .card .top{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .cve{font-family:var(--mono); font-weight:600; font-size:14px}
+  .cve a{color:var(--ink)}
+  .prod-tags{display:flex; gap:6px; flex-wrap:wrap}
+  .ptag{font-family:var(--mono); font-size:11px; background:var(--amber-dim); color:var(--amber); border:1px solid #4a3a2a; padding:2px 8px; border-radius:20px}
+  .vname{font-size:13.5px; color:var(--ink); margin:8px 0 4px; font-weight:500}
+  .vendor{font-family:var(--mono); font-size:11.5px; color:var(--muted)}
+  .meta{display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; font-family:var(--mono); font-size:11.5px; color:var(--muted)}
+  .meta b{color:var(--ink); font-weight:500}
+  .flag{font-family:var(--mono); font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; padding:2px 8px; border-radius:5px; background:var(--red-dim); color:#f2999c; border:1px solid #4a2a2d}
+  .desc{font-size:12.5px; color:var(--muted); margin-top:10px; line-height:1.55}
+
+  .empty{text-align:center; padding:64px 20px; color:var(--muted)}
+  .empty.clear{color:var(--green)}
+  .empty .big{font-family:var(--display); font-size:20px; font-weight:600; color:var(--ink); margin-bottom:8px}
+  .empty.clear .big{color:var(--green)}
+
+  .toolbar{display:flex; gap:8px; flex-wrap:wrap; margin:22px 0 8px}
+  .toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--panel-2); border:1px solid var(--line); color:var(--ink); padding:11px 18px; border-radius:9px; font-size:13px; transition:.2s; pointer-events:none; z-index:50}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  .banner{background:var(--red-dim); border:1px solid #4a2a2d; color:#f2999c; padding:12px 14px; border-radius:10px; font-size:13px; margin-bottom:22px; display:none}
+  .banner.show{display:block}
+  .banner code{font-family:var(--mono); font-size:12px}
+
+  .foot{margin-top:26px; padding-top:16px; border-top:1px solid var(--line); font-size:12.5px; color:var(--muted); line-height:1.6}
+  .foot b{color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>KEV Triage</h1>
+      <span class="tag">manual check · fallback for the weekly job</span>
+    </div>
+    <div class="status" id="status"><span class="dot busy"></span>Loading…</div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+
+  <div class="controls">
+    <div class="f">
+      <label for="recency">Added within</label>
+      <select id="recency">
+        <option value="0">All entries</option>
+        <option value="7" selected>7 days</option>
+        <option value="14">14 days</option>
+        <option value="30">30 days</option>
+        <option value="90">90 days</option>
+      </select>
+    </div>
+    <label class="chk"><input type="checkbox" id="searchDesc"> match on description too</label>
+    <div class="spacer"></div>
+    <button class="btn primary" id="refreshBtn">Refresh</button>
+  </div>
+
+  <div id="results">
+    <div class="empty"><div class="big">Loading…</div>Pulling the live KEV catalog and your inventory, then cross-checking.</div>
+  </div>
+
+  <div class="foot">
+    This page pulls <b>inventory.txt</b> and the live KEV catalog straight from the repo and checks them in your browser — read-only, nothing is posted. The weekly <b>GitHub Action</b> does the same check server-side and posts to Teams; open this if you want to verify a run or check between runs. To change what's tracked, edit <b>inventory.txt</b> in the repo — both this page and the Action read it.
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
+// Live KEV catalog (GitHub mirror sends CORS headers; works in-browser).
+const FEED_URL = "https://raw.githubusercontent.com/cisagov/kev-data/develop/known_exploited_vulnerabilities.json";
+
+// Inventory source. Relative path works when this page sits next to inventory.txt
+// on GitHub Pages. If your Pages site serves from /docs or another repo, use the
+// raw URL instead, e.g.:
+//   "https://raw.githubusercontent.com/<user>/<repo>/<branch>/inventory.txt"
+const INVENTORY_URL = "inventory.txt";
+/* ============================================================ */
+
+const $ = s => document.querySelector(s);
+let CATALOG = [], INV = [], LAST_RESULT = null, toastT;
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2200); }
+function setStatus(cls,html){ $('#status').innerHTML='<span class="dot '+cls+'"></span>'+html; }
+function banner(msg){ const b=$('#banner'); if(!msg){b.classList.remove('show');return;} b.innerHTML=msg; b.classList.add('show'); }
+
+/* ---------- parsing ---------- */
+function parseInventory(text){
+  const items=[];
+  text.split('\n').forEach(raw=>{
+    const line=raw.trim(); if(!line||line.startsWith('#')) return;
+    let name=line, kw=[]; const i=line.indexOf('::');
+    if(i>=0){ name=line.slice(0,i).trim(); kw=line.slice(i+2).split(',').map(s=>s.trim().toLowerCase()).filter(Boolean); }
+    if(!kw.length) kw=[name.toLowerCase()];
+    if(name) items.push({name,keywords:kw});
+  });
+  return items;
+}
+function normFromKev(v){
+  return {
+    cve:(v.cveID||v.cve||'').trim(), vendor:(v.vendorProject||v.vendor||'').trim(),
+    product:(v.product||'').trim(), name:(v.vulnerabilityName||v.name||'').trim(),
+    dateAdded:(v.dateAdded||'').trim(), dueDate:(v.dueDate||'').trim(),
+    ransomware:/known/i.test(v.knownRansomwareCampaignUse||''), desc:(v.shortDescription||v.description||'').trim()
+  };
+}
+
+/* ---------- matching ---------- */
+function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function matchEntry(entry, useDesc){
+  let hay=[entry.vendor,entry.product,entry.name]; if(useDesc) hay.push(entry.desc);
+  hay=hay.join(' ').toLowerCase(); const hits=[];
+  for(const item of INV){
+    for(const kw of item.keywords){
+      if(new RegExp('(^|[^a-z0-9])'+esc(kw)+'([^a-z0-9]|$)','i').test(hay)){ hits.push(item.name); break; }
+    }
+  }
+  return hits;
+}
+function daysBetween(iso){ if(!iso) return null; const d=new Date(iso+(iso.length<=10?'T00:00:00':'')); if(isNaN(d)) return null; return Math.round((d-new Date())/86400000); }
+
+function run(){
+  if(!CATALOG.length || !INV.length) return;
+  const recency=parseInt($('#recency').value,10), useDesc=$('#searchDesc').checked, now=new Date();
+  let entries=CATALOG;
+  if(recency>0) entries=entries.filter(e=>{ if(!e.dateAdded) return true; const a=new Date(e.dateAdded); if(isNaN(a)) return true; return (now-a)/86400000<=recency; });
+  const matches=[];
+  for(const e of entries){ const hits=matchEntry(e,useDesc); if(hits.length){ const dd=daysBetween(e.dueDate); matches.push({...e,products:hits,dueIn:dd,overdue:(dd!==null&&dd<0)}); } }
+  matches.sort((a,b)=>{ const rank=x=>x.overdue?0:x.ransomware?1:2; if(rank(a)!==rank(b))return rank(a)-rank(b); const ad=a.dueIn===null?9e9:a.dueIn,bd=b.dueIn===null?9e9:b.dueIn; if(ad!==bd)return ad-bd; return (b.dateAdded||'').localeCompare(a.dateAdded||''); });
+  LAST_RESULT={matches,scanned:entries.length,invCount:INV.length,recency,generated:now};
+  render(LAST_RESULT);
+}
+
+/* ---------- render ---------- */
+function fmtDue(m){ if(!m.dueDate) return 'no due date'; if(m.dueIn===null) return m.dueDate; if(m.dueIn<0) return m.dueDate+' ('+Math.abs(m.dueIn)+'d overdue)'; return m.dueDate+' ('+m.dueIn+'d left)'; }
+function escapeHtml(s){ return (s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function render(res){
+  const box=$('#results');
+  const affected=new Set(); res.matches.forEach(m=>m.products.forEach(p=>affected.add(p)));
+  const overdue=res.matches.filter(m=>m.overdue).length, ransom=res.matches.filter(m=>m.ransomware).length;
+  if(!res.matches.length){
+    box.innerHTML=`<div class="empty clear"><div class="big">No exposure found</div>Scanned ${res.scanned} KEV entr${res.scanned===1?'y':'ies'} against ${res.invCount} products ${res.recency>0?'(last '+res.recency+' days)':''} — nothing matched.</div>`;
+    return;
+  }
+  let html=`<div class="strip">
+    <div class="stat crit"><div class="n">${res.matches.length}</div><div class="l">Matched CVEs</div></div>
+    <div class="stat hit"><div class="n">${affected.size}</div><div class="l">Products affected</div></div>
+    <div class="stat ${overdue?'crit':''}"><div class="n">${overdue}</div><div class="l">Past due date</div></div>
+    <div class="stat ${ransom?'crit':''}"><div class="n">${ransom}</div><div class="l">Ransomware-linked</div></div>
+  </div>
+  <div class="res-head"><h2>Products to check</h2><span class="note">scanned ${res.scanned} · ${res.recency>0?'last '+res.recency+'d':'full catalog'}</span></div>`;
+  for(const m of res.matches){
+    const cls=m.overdue?'overdue':(m.ransomware?'ransom':'affected'), nvd='https://nvd.nist.gov/vuln/detail/'+m.cve;
+    html+=`<div class="card ${cls}">
+      <div class="top"><span class="cve"><a href="${nvd}" target="_blank" rel="noopener">${m.cve}</a></span>
+      <span class="prod-tags">${m.products.map(p=>`<span class="ptag">${escapeHtml(p)}</span>`).join('')}</span></div>
+      ${m.name?`<div class="vname">${escapeHtml(m.name)}</div>`:''}
+      ${(m.vendor||m.product)?`<div class="vendor">${escapeHtml([m.vendor,m.product].filter(Boolean).join(' — '))}</div>`:''}
+      <div class="meta">${m.overdue?'<span class="flag">overdue</span>':(m.ransomware?'<span class="flag">ransomware</span>':'')}
+      ${m.dateAdded?`<span>added <b>${m.dateAdded}</b></span>`:''}<span>due <b>${fmtDue(m)}</b></span></div>
+      ${m.desc?`<div class="desc">${escapeHtml(m.desc)}</div>`:''}</div>`;
+  }
+  html+=`<div class="toolbar">
+    <button class="btn sm" id="copySummary">Copy summary</button>
+    <button class="btn sm" id="dlCsv">Download CSV</button></div>`;
+  box.innerHTML=html;
+  $('#copySummary').onclick=()=>copy(plainSummary(res),'Summary copied');
+  $('#dlCsv').onclick=()=>downloadCsv(res);
+}
+
+/* ---------- exports ---------- */
+function plainSummary(res){
+  const d=res.generated.toISOString().slice(0,10);
+  let o=`CISA KEV cross-check — ${d}\n${res.matches.length} matched CVE(s), scanned ${res.scanned}${res.recency>0?', last '+res.recency+'d':''}.\n\n`;
+  for(const m of res.matches) o+=`- ${m.cve} — ${m.products.join(', ')}\n  ${m.name}\n  due ${fmtDue(m)}${m.ransomware?' · ransomware':''}\n`;
+  return o;
+}
+function downloadCsv(res){
+  const rows=[['CVE','Products','Vendor','Product','Name','Date Added','Due Date','Overdue','Ransomware']];
+  res.matches.forEach(m=>rows.push([m.cve,m.products.join('; '),m.vendor,m.product,m.name,m.dateAdded,m.dueDate,m.overdue?'yes':'no',m.ransomware?'yes':'no']));
+  const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='kev-triage-'+res.generated.toISOString().slice(0,10)+'.csv'; a.click(); URL.revokeObjectURL(a.href);
+}
+function copy(text,msg){ navigator.clipboard.writeText(text).then(()=>toast(msg),()=>{ const t=document.createElement('textarea'); t.value=text; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); toast(msg); }); }
+
+/* ---------- load ---------- */
+async function loadAll(){
+  banner(''); setStatus('busy','Loading…');
+  $('#refreshBtn').disabled=true;
+  let invOk=false, catOk=false, invMsg='', catMsg='';
+  // inventory
+  try{
+    const r=await fetch(INVENTORY_URL,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+    INV=parseInventory(await r.text()); if(!INV.length) throw new Error('no products parsed'); invOk=true;
+  }catch(e){ invMsg=e.message; }
+  // catalog
+  try{
+    const r=await fetch(FEED_URL,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+    const data=await r.json(); const arr=Array.isArray(data)?data:(data.vulnerabilities||data.data||[]);
+    if(!arr.length) throw new Error('empty catalog'); CATALOG=arr.map(normFromKev).filter(e=>e.cve); catOk=true;
+  }catch(e){ catMsg=e.message; }
+
+  if(invOk && catOk){
+    setStatus('on','<b>'+CATALOG.length+'</b> KEV entries · <b>'+INV.length+'</b> products');
+    run();
+  }else{
+    setStatus('bad','Load failed');
+    const parts=[];
+    if(!invOk) parts.push('inventory (<code>'+INVENTORY_URL+'</code>): '+invMsg);
+    if(!catOk) parts.push('catalog: '+catMsg);
+    banner('Could not load '+parts.join(' &nbsp;·&nbsp; ')+'. Check the paths in the CONFIG block, then Refresh.');
+    $('#results').innerHTML='<div class="empty"><div class="big">Nothing to show</div>See the message above and hit Refresh.</div>';
+  }
+  $('#refreshBtn').disabled=false;
+}
+
+/* ---------- wire ---------- */
+$('#refreshBtn').onclick=loadAll;
+$('#recency').addEventListener('change',run);
+$('#searchDesc').addEventListener('change',run);
+loadAll();
+</script>
+</body>
+</html>
