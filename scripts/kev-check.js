@@ -7,10 +7,16 @@
  *
  * Env:
  *   TEAMS_WEBHOOK_URL  Power Automate Workflows webhook (from GitHub secret)
- *   RECENCY_DAYS       only flag entries added within N days (0 = all). Default 7.
+ *   RECENCY_DAYS       only flag entries added within the last N calendar days (0 = all). Default 7.
  *   SEARCH_DESC        "true" to also match on the KEV description. Default off.
  *   POST_WHEN          "always" (post even when clean) | "matches". Default always.
  *   INVENTORY_FILE     path to inventory list. Default inventory.txt.
+ *
+ * Changes:
+ *   2026-11-19  Recency window now compares calendar dates. KEV dateAdded is a
+ *               bare YYYY-MM-DD, which parses as 00:00 UTC, so the old
+ *               millisecond check dropped every entry added on the same weekday
+ *               as the scheduled run (Monday adds were never reported).
  */
 
 const fs = require('fs');
@@ -104,11 +110,15 @@ function crossCheck(catalog, inv){
   const now = new Date();
   let entries = catalog;
   if (RECENCY > 0) {
+    // Compare calendar dates, not milliseconds (see Changes above). With the
+    // weekly Monday 03:30 UTC run and RECENCY 7, the cutoff is last Monday's
+    // date, so every entry is reported exactly once: last Monday's adds were
+    // published after last week's run, and today's adds come after this one.
+    const cutoff = new Date(now.getTime() - RECENCY * 86400000).toISOString().slice(0, 10);
     entries = entries.filter(e => {
-      if (!e.dateAdded) return true;
-      const a = new Date(e.dateAdded);
-      if (isNaN(a)) return true;
-      return (now - a) / 86400000 <= RECENCY;
+      const d = (e.dateAdded || '').slice(0, 10);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return true;   // missing/odd date: keep it, as before
+      return d >= cutoff;
     });
   }
   const matches = [];
